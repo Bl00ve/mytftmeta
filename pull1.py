@@ -1,69 +1,67 @@
-import requests, time
+import requests, time, pandas, json
 
 # Variables
 REGION = 'na1'
 TFTREGION = 'americas'
-APIKEY = 'RGAPI-9e42a420-48a8-4658-a50b-569bd106691c'
-MATCHES = '2'
+APIKEY = 'RGAPI-9d7722ed-75f7-43a7-be7a-0b99073323ac'
+MATCHES = '1'
 # Class 
 class Summoner:
     def __init__(self, name):
-        if len(name) < 17:
-            URL = 'https://' + REGION + '.api.riotgames.com/tft/summoner/v1/summoners/by-name/' + name + '?api_key=' + APIKEY
+        if type(name) == list:
+            for name in name:
+                self.getpuuid(name)
+        elif len(name) < 17:
+            self.getpuuid(name)
         else:
-            URL = 'https://' + REGION + '.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/' + name + '?api_key=' + APIKEY
+            self.getname(name)
+
+    def getpuuid(self, name):
+        URL = 'https://' + REGION + '.api.riotgames.com/tft/summoner/v1/summoners/by-name/' + name + '?api_key=' + APIKEY
         response = requests.get(URL)
-        self.id = response.json()['id']
         self.puuid = response.json()['puuid']
-        self.accountid = response.json()['accountId']
-        self.name = response.json()['name']
-        self.history = requestTFTMatchHistory(self.puuid, TFTREGION, APIKEY, MATCHES)
 
-class MatchDetails:
-    def __init__(self, match_ids):
-        self.info = []
-        for match_id in match_ids:
-            self.info.append(requestMatchDetails(match_id, TFTREGION, APIKEY))
-        self.match_participants = []
-        for match in self.info:
-            for participant in match['metadata']['participants']:
-                self.match_participants.append(Summoner(participant).name)
+    def getname(self, puuid):
+        URL = 'https://'+ REGION +'.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/' + APIKEY
+        response = requests.get(URL)
+        return response.json()['name']
 
-def requestSummonerData(REGION, summonerName, APIKEY):
-    URL = 'https://' + REGION + '.api.riotgames.com/tft/summoner/v1/summoners/by-name/' + summonerName + '?api_key=' + APIKEY
-    response = requests.get(URL)
-    return response.json()
-def requestTFTMatchHistory(ID, TFTREGION, APIKEY, matches):
-    URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/by-puuid/' + ID + '/ids?count=' + matches + '&api_key=' + APIKEY
-    response = requests.get(URL)
-    return response.json()
-def requestTFTSummonerData(ID, REGION, APIKEY, playerlist, uniqueplayerlist):
-    URL = 'https://' + REGION + '.api.riotgames.com/tft/summoner/v1/summoners/by-puuid/' + ID + '?api_key=' + APIKEY
-    response = requests.get(URL)
-    return response.json()
-def requestMatchDetails(matchID, TFTREGION, APIKEY):
-    URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/' + matchID + '?api_key=' + APIKEY
-    response = requests.get(URL)
-    return response.json()
+class Match:
+    def __init__(self, Summoner):
+        if type(Summoner) == list:
+           for x in Summoner:
+               self.matchhistory = self.getmatchhistory(x.puuid)
+        else:
+            self.matchhistory = self.getmatchhistory(Summoner.puuid)
+        self.matchdetails = self.getmatchdetails(self.matchhistory)
+    
+    def getmatchhistory(self, puuid):
+        URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/by-puuid/' + puuid + '/ids?count=' + MATCHES + '&api_key=' + APIKEY
+        response = requests.get(URL)
+        return response.json()
 
+    def getmatchdetails(self, matchid):
+        for match in matchid:
+            URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/' + match + '?api_key=' + APIKEY
+            response = requests.get(URL)
+            return response.json()
 
 def main():
-    #Set static values for just me
+
     a_summoner = Summoner('Bloodvault')
+    #print(a_summoner.puuid)
+    #print(Match(a_summoner).matchhistory)
+    #print(Match(a_summoner).matchdetails)
 
+    #Format details as JSON
+    #data = Match(a_summoner).matchdetails
+    #values = [{'match_details': k, 'unit_details': v} for k, v in data.items()]
+    #print(json.dumps(values, indent=4))
 
-    #Match(a_summoner)
-    #print(a_summoner.name)
-    #print(Match(a_summoner).history)
-
-    #print(Match(a_summoner).history[1])
-    #print(Match(a_summoner).game_datetime)
-    
-    #This will be for grabbing people's units
-    #print(Match(a_summoner).details['info']['participants'])
-
-    print(MatchDetails(Summoner(a_summoner.name).history).match_participants)
-    #print(Match(a_summoner).details['metadata'])
+    #Working with pandas data frames to store the match info
+    data = Match(a_summoner).matchdetails['info']
+    df = pandas.DataFrame.from_dict(data=data).T
+    print(df)
 
 if __name__ == '__main__':
     main()
