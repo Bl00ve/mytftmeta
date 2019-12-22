@@ -3,9 +3,13 @@
     Note- Could also extend to check last 10 games and the last 10 games of each person in 1st place in each match instead of just the user.
 - The website would have a print out with each character portrait and items displayed (depending on assets available in .zip)
 - Pull static assets from - http://raw.communitydragon.org/latest/cdragon/tft/en_us.json
+- When people pull match history, each matchid gets written to file to work with then can use machine learning on all the txt files later
 
 Links
 - https://developer.riotgames.com/apis#tft-match-v1/GET_getMatch
 - https://developer.riotgames.com/apis#tft-summoner-v1/GET_getByPUUID
 - https://developer.riotgames.com/docs/tft
 - https://docs.python.org/3/tutorial/classes.html
+JSON/Pandas Links
+- https://stackoverflow.com/questions/21104592/json-to-pandas-dataframe
+- https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html

@@ -109,3 +109,37 @@ def requestMatchDetails(matchID, TFTREGION, APIKEY):
         for match in self.info:
             for participant in match['metadata']['participants']:
                 self.match_participants.append(Summoner(participant).name)
+
+
+        with open('en_us_20191208.json') as json_file:
+            json_data = json.load(json_file)
+            json_data2 = pandas.io.json.json_normalize(json_data)
+            json_dict = json_data2.to_dict()
+        for x in json_dict['items'][0]:
+            print(x['name'] + ' ' + str(x['id']))
+
+    #print(a_summoner.puuid)
+    #print(Match(a_summoner).matchhistory)
+    #print(Match(a_summoner).matchdetails)
+
+    #Format details as JSON
+    #data = Match(a_summoner).matchdetails
+    #values = [{'match_details': k, 'unit_details': v} for k, v in data.items()]
+    #print(json.dumps(values, indent=4))
+
+    #Working with pandas data frames to store the match info
+    data = pandas.io.json.json_normalize(Match(a_summoner).matchdetails)
+    #print(data)
+    #print(type(data))
+    #data.to_csv(path_or_buf='match2.csv', na_rep='NaN')
+    data_dict = data.to_dict()
+    #print(data_dict)
+    #print(data_dict['info.participants'][0][0])
+
+
+    # Don't really need this since I can include in getitems()
+        def getchamps(self):
+        pass
+        data_dict = self.data.to_dict()
+        for x in data_dict['info.participants'][0][0]['units']:
+            print(x['name'])
