@@ -4,8 +4,9 @@ from pandas.io.json import json_normalize
 # Variables
 REGION = 'na1'
 TFTREGION = 'americas'
-APIKEY = 'RGAPI-9c8101d2-d38d-49ff-a96a-7a4500588ebd'
-MATCHES = '1'
+APIKEY = 'RGAPI-b2645a0a-2ba2-49e3-97b4-a32225e62a16'
+MATCHES = '2'
+
 # Class 
 class Summoner:
     def __init__(self, name):
@@ -34,9 +35,14 @@ class Match:
                self.matchhistory = self.getmatchhistory(x.puuid)
         else:
             self.matchhistory = self.getmatchhistory(Summoner.puuid)
+        self.matchdetails = []
         self.matchdetails = self.getmatchdetails(self.matchhistory)
-        self.data = pandas.io.json.json_normalize(self.matchdetails)
-        self.data_dict = self.data.to_dict()
+        self.data = []
+        for match in self.matchdetails:
+            self.data.append(pandas.io.json.json_normalize(match))
+        self.data_dict = []
+        for data in self.data:
+            self.data_dict.append(data.to_dict())
     
     def getmatchhistory(self, puuid):
         URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/by-puuid/' + puuid + '/ids?count=' + MATCHES + '&api_key=' + APIKEY
@@ -47,11 +53,21 @@ class Match:
         for match in matchid:
             URL = 'https://' + TFTREGION + '.api.riotgames.com/tft/match/v1/matches/' + match + '?api_key=' + APIKEY
             response = requests.get(URL)
-            return response.json()
+            self.matchdetails.append(response.json())
+        return self.matchdetails
     
     def getfirstplace(self):
-        for x in self.data_dict['info.participants'][0]:
-            print(Summoner(x['puuid']).name + ' placed: ' + str(x['placement']))
+        for match in self.data_dict:
+            print('Match Date ', self.getmatchdate(match))
+            print('------------')
+            self.placement = []
+            for x in match['info.participants'][0]:
+                self.placement.append((Summoner(x['puuid']).name, str(x['placement'])))
+            sorter(self.placement)
+            for y in self.placement:
+                print(y[0],' --> ',y[1])
+        #return(self.placement[0],' ---> ', self.placement[1])
+            #print(Summoner(x['puuid']).name + ' placed: ' + str(x['placement']))
 
     def getsetbuffs(self):
         z = 0
@@ -62,9 +78,7 @@ class Match:
             print('<----------------->')
             z += 1
 
-            
-
-    def getitems(self):
+    def getitems(self, match):
         for x in self.data_dict['info.participants'][0][0]['units']:
             print(x['name'])
             for y in x['items']:
@@ -74,21 +88,28 @@ class Match:
                     json_dict = json_data2.to_dict()
                 for x in json_dict['items'][0]:
                     if y == x['id']:
+                        
                         print('---> ' + x['name'])
+                        
 
-
-    def getmatchdate(self):
-        ts = self.data_dict['info.game_datetime'][0]
+    def getmatchdate(self, match):
+        ts = match['info.game_datetime'][0]
         pacific = datetime.timedelta(hours=8)
-        print((datetime.datetime.utcfromtimestamp(ts/1000) - pacific).strftime('%Y-%m-%d %H:%M:%S'))
+        return (datetime.datetime.utcfromtimestamp(ts/1000) - pacific).strftime('%Y-%m-%d %H:%M:%S')
+
+# Useful functions
+# Python code to sort the tuples using second element  
+def sorter(list): 
+    list.sort(key = lambda x: x[1]) 
+    return list
 
 def main():
 
     a_summoner = Summoner('Bloodvault')
     #print(Match.getitems(Match(a_summoner)))
     #print(Match.getmatchdate(Match(a_summoner)))
-    print(Match.getsetbuffs(Match(a_summoner)))
-
+    #print(Match.getsetbuffs(Match(a_summoner)))
+    Match.getfirstplace(Match(a_summoner))
 
 if __name__ == '__main__':
     main()
