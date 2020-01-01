@@ -59,37 +59,40 @@ class Match:
     def getfirstplace(self):
         for match in self.data_dict:
             print('Match Date ', self.getmatchdate(match))
-            print('------------')
+            print('-------------------------')
             self.placement = []
             for x in match['info.participants'][0]:
                 self.placement.append((Summoner(x['puuid']).name, str(x['placement'])))
             sorter(self.placement)
             for y in self.placement:
                 print(y[0],' --> ',y[1])
-        #return(self.placement[0],' ---> ', self.placement[1])
-            #print(Summoner(x['puuid']).name + ' placed: ' + str(x['placement']))
 
     def getsetbuffs(self):
-        z = 0
-        for y in self.data_dict['metadata.participants'][0]:
-            print(Summoner(y).name)
-            print('<----------------->')
-            print(self.data_dict['info.participants'][0][z]['traits'])
-            print('<----------------->')
-            z += 1
+        for match in self.data_dict:
+            print('Match ID = ', match['metadata.match_id'][0])
+            print('-------------------------')
+            z = 0
+            for y in match['metadata.participants'][0]:
+                print(Summoner(y).name)
+                print('<----------------->')
+                print(match['info.participants'][0][z]['traits'])
+                print('<----------------->')
+                z += 1
 
-    def getitems(self, match):
-        for x in self.data_dict['info.participants'][0][0]['units']:
-            print(x['name'])
-            for y in x['items']:
-                with open('en_us_20191208.json') as json_file:
-                    json_data = json.load(json_file)
-                    json_data2 = pandas.io.json.json_normalize(json_data)
-                    json_dict = json_data2.to_dict()
-                for x in json_dict['items'][0]:
-                    if y == x['id']:
-                        
-                        print('---> ' + x['name'])
+    def getitems(self):
+        for match in self.data_dict:
+            print('Match ID = ', match['metadata.match_id'][0])
+            print('-------------------------')
+            for x in match['info.participants'][0][0]['units']:
+                print(x['name'])
+                for y in x['items']:
+                    with open('en_us_20191208.json') as json_file:
+                        json_data = json.load(json_file)
+                        json_data2 = pandas.io.json.json_normalize(json_data)
+                        json_dict = json_data2.to_dict()
+                    for x in json_dict['items'][0]:
+                        if y == x['id']:
+                            print('---> ' + x['name'])
                         
 
     def getmatchdate(self, match):
@@ -105,11 +108,16 @@ def sorter(list):
 
 def main():
 
-    a_summoner = Summoner('Bloodvault')
+    a_summoner = Summoner('DevonsMeat')
     #print(Match.getitems(Match(a_summoner)))
     #print(Match.getmatchdate(Match(a_summoner)))
     #print(Match.getsetbuffs(Match(a_summoner)))
     Match.getfirstplace(Match(a_summoner))
-
+    #Match(a_summoner).getitems()
+    #print('<-------------->')
+    #Match(a_summoner).getsetbuffs()
+    #print(Match(a_summoner).data_dict)
+    #print(Match(a_summoner).matchhistory)
+    
 if __name__ == '__main__':
     main()
